@@ -196,15 +196,14 @@ let score = 0;
 let userAnswers = [];
 
 function updateHomeStats() {
-  let mastered = 0, missed = 0, neverSeen = 0, learning = 0;
+  let mastered = 0, missed = 0, neverSeen = 0;
   
   for (let q of QUESTIONS) {
     const p = progress[q.id];
     if (!p) { neverSeen++; continue; }
     if (p.mastered) mastered++;
-    else if (p.total_correct > 0 && p.correct_streak < 2) missed++;
+    else if (p.seen > 0 && p.correct_streak < 2) missed++;
     else if (p.seen === 0) neverSeen++;
-    else learning++;
   }
   
   document.getElementById('home-stats').innerHTML = `
@@ -247,7 +246,7 @@ function selectSmartQuestions(count) {
     
     if (p.mastered) continue;
     
-    if (p.total_correct > 0 && p.correct_streak < 2) {
+    if (p.seen > 0 && p.correct_streak < 2) {
       missed.push(q);
     } else if (p.seen === 0) {
       neverSeen.push(q);
@@ -260,16 +259,15 @@ function selectSmartQuestions(count) {
   
   // Add missed questions: min 3, max 4
   missed.sort(() => Math.random() - 0.5);
-  const missedCount = Math.min(4, Math.max(3, missed.length));
-  selected = selected.concat(missed.slice(0, missedCount));
+  const missedToTake = Math.min(4, Math.max(3, missed.length));
+  selected = selected.concat(missed.slice(0, missedToTake));
   
-  // Fill with Never Seen (aim for good balance)
+  // Fill with Never Seen
   neverSeen.sort(() => Math.random() - 0.5);
   const remaining = count - selected.length;
-  const neverSeenToTake = Math.min(neverSeen.length, Math.max(8, remaining - 4));
-  selected = selected.concat(neverSeen.slice(0, neverSeenToTake));
+  selected = selected.concat(neverSeen.slice(0, remaining));
   
-  // Fill the rest with Learning
+  // Fill the rest with Learning if needed
   if (selected.length < count) {
     learning.sort(() => Math.random() - 0.5);
     selected = selected.concat(learning.slice(0, count - selected.length));
@@ -322,12 +320,6 @@ function submitAnswer() {
   if (isCorrect) {
     p.total_correct++;
     p.correct_streak++;
-    
-    // Move to Mastered only after 2 consecutive correct OR manual
-    if (p.correct_streak >= 2) {
-      // Keep in missed until manually mastered or keep logic
-      // For now we keep it in missed until 2 consecutive or manual
-    }
   } else {
     p.correct_streak = 0;
   }
