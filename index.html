@@ -136,6 +136,21 @@ button.warning { background: #f59e0b; color: white; }
   color: #475569;
   margin-bottom: 12px;
 }
+
+.quiz-length-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+@media (max-width: 600px) {
+  .quiz-length-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
 </style>
 </head>
 <body>
@@ -148,9 +163,20 @@ button.warning { background: #f59e0b; color: white; }
     <div class="stats-grid" id="home-stats"></div>
     
     <div style="text-align:center; margin-top:24px;">
-      <button onclick="startQuiz()" style="font-size:17px; padding:14px 36px;">Start 20 Questions</button>
-      <br>
-      <button onclick="resetAllProgress()" class="secondary">Reset All Progress</button>
+      <p style="margin-bottom:12px; font-weight:600; color:#475569;">Choose quiz length:</p>
+      
+      <div class="quiz-length-buttons">
+        <button onclick="startQuiz(10)" style="font-size:17px; padding:14px 36px; background:#16a34a;">
+          Start 10 Questions
+        </button>
+        <button onclick="startQuiz(20)" style="font-size:17px; padding:14px 36px;">
+          Start 20 Questions
+        </button>
+      </div>
+      
+      <div style="margin-top:20px;">
+        <button onclick="resetAllProgress()" class="secondary">Reset All Progress</button>
+      </div>
     </div>
   </div>
 </div>
@@ -175,7 +201,7 @@ button.warning { background: #f59e0b; color: white; }
     <h2 style="margin-top:0;">Quiz Complete</h2>
     <div id="stats"></div>
     <div style="margin-top:24px;">
-      <button onclick="startQuiz()">Take Another Quiz</button>
+      <button onclick="startQuiz(20)">Take Another Quiz (20)</button>
       <button onclick="goHome()" class="secondary">Back to Home</button>
     </div>
   </div>
@@ -194,6 +220,7 @@ let currentQuiz = [];
 let currentIndex = 0;
 let score = 0;
 let userAnswers = [];
+let currentQuizLength = 20;
 
 function updateHomeStats() {
   let mastered = 0, missed = 0, neverSeen = 0;
@@ -226,8 +253,9 @@ function updateHomeStats() {
   `;
 }
 
-function startQuiz() {
-  currentQuiz = selectSmartQuestions(20);
+function startQuiz(length) {
+  currentQuizLength = length;
+  currentQuiz = selectSmartQuestions(length);
   currentIndex = 0;
   score = 0;
   userAnswers = [];
@@ -257,9 +285,14 @@ function selectSmartQuestions(count) {
 
   let selected = [];
   
-  // Add missed questions: min 3, max 4
+  // Missed questions scaling
+  // 20 questions → 3 to 4 missed
+  // 10 questions → 1 to 2 missed
+  const missedMin = Math.max(1, Math.floor(count * 0.15)); // ~15%
+  const missedMax = Math.max(2, Math.floor(count * 0.2));  // ~20%
+  
   missed.sort(() => Math.random() - 0.5);
-  const missedToTake = Math.min(4, Math.max(3, missed.length));
+  const missedToTake = Math.min(missedMax, Math.max(missedMin, missed.length));
   selected = selected.concat(missed.slice(0, missedToTake));
   
   // Fill with Never Seen
