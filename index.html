@@ -48,13 +48,14 @@ button {
   background: var(--primary);
   color: white;
   border: none;
-  padding: 12px 24px;
-  font-size: 15px;
-  border-radius: 10px;
+  padding: 14px 24px;
+  font-size: 16px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
-  margin: 6px;
-  min-height: 44px;
+  margin: 8px;
+  min-height: 52px;
+  touch-action: manipulation;
 }
 
 button:hover { background: #1d4ed8; }
@@ -63,16 +64,31 @@ button.warning { background: #f59e0b; color: white; }
 button.danger { background: #dc2626; }
 
 .option {
-  padding: 14px 18px;
+  padding: 16px 18px;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  margin: 8px 0;
+  border-radius: 14px;
+  margin: 10px 0;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 15px;
-  min-height: 52px;
+  font-size: 16px;
+  min-height: 60px;
   display: flex;
   align-items: center;
+  touch-action: manipulation;
+}
+
+@media (max-width: 600px) {
+  .option {
+    font-size: 16px;
+    padding: 18px 20px;
+    min-height: 64px;
+  }
+  
+  button {
+    font-size: 17px;
+    padding: 16px 24px;
+    min-height: 56px;
+  }
 }
 
 .option:hover { border-color: #94a3b8; background: #f8fafc; }
@@ -81,37 +97,37 @@ button.danger { background: #dc2626; }
 .option.incorrect { border-color: var(--danger); background: #fee2e2; }
 
 #question {
-  font-size: 1.1em;
+  font-size: 1.15em;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   line-height: 1.5;
 }
 
 #explanation {
   background: #fefce8;
   border-left: 5px solid #eab308;
-  padding: 16px 20px;
-  border-radius: 12px;
-  margin-top: 20px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  margin-top: 24px;
   display: none;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
+  gap: 14px;
   margin: 20px 0;
 }
 
 .stat-card {
   background: #f1f5f9;
-  padding: 16px;
-  border-radius: 12px;
+  padding: 18px;
+  border-radius: 14px;
   text-align: center;
 }
 
 .stat-number {
-  font-size: 1.6em;
+  font-size: 1.7em;
   font-weight: 700;
   color: var(--primary);
 }
@@ -124,10 +140,10 @@ button.danger { background: #dc2626; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
+  padding: 12px 16px;
   background: #f8fafc;
-  border-radius: 10px;
-  margin-bottom: 8px;
+  border-radius: 12px;
+  margin-bottom: 10px;
   font-size: 0.95em;
 }
 
@@ -142,10 +158,10 @@ button.danger { background: #dc2626; }
 }
 
 .domain-bar {
-  height: 6px;
+  height: 7px;
   background: #e2e8f0;
   border-radius: 9999px;
-  margin-top: 6px;
+  margin-top: 8px;
   overflow: hidden;
 }
 
@@ -158,16 +174,16 @@ button.danger { background: #dc2626; }
 .domain-checkbox {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 12px;
+  padding: 12px 16px;
   background: #f8fafc;
-  border-radius: 10px;
-  margin-bottom: 8px;
+  border-radius: 12px;
+  margin-bottom: 10px;
 }
 
 .domain-checkbox input {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 
 .focus-button {
@@ -183,11 +199,21 @@ button.danger { background: #dc2626; }
   background: #ef4444;
   color: white;
   border: none;
-  padding: 4px 10px;
-  font-size: 12px;
-  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 8px;
   cursor: pointer;
-  margin-left: 10px;
+  margin-left: 12px;
+}
+
+.exam-button {
+  background: #059669;
+  font-size: 17px;
+  padding: 16px 32px;
+}
+
+.exam-button:hover {
+  background: #047857;
 }
 </style>
 </head>
@@ -214,15 +240,23 @@ button.danger { background: #dc2626; }
       </button>
     </div>
     
-    <div style="text-align:center; margin-top:20px;">
-      <button onclick="startQuiz(10)" id="btn10" disabled style="font-size:17px; padding:14px 36px; background:#16a34a;">
+    <div style="text-align:center; margin-top:24px;">
+      <button onclick="startQuiz(10)" id="btn10" disabled style="font-size:17px; padding:16px 36px; background:#16a34a;">
         Start 10 Questions
       </button>
-      <button onclick="startQuiz(20)" id="btn20" disabled style="font-size:17px; padding:14px 36px;">
+      <button onclick="startQuiz(20)" id="btn20" disabled style="font-size:17px; padding:16px 36px;">
         Start 20 Questions
       </button>
+      
       <br>
-      <button onclick="resetAllProgress()" class="secondary" style="margin-top:12px;">Reset All Progress</button>
+      
+      <!-- Exam Simulation Button -->
+      <button onclick="startExamSimulation()" class="exam-button" style="margin-top:16px; width:100%; max-width:320px;">
+        Take Practice Exam (100 Questions)
+      </button>
+      
+      <br>
+      <button onclick="resetAllProgress()" class="secondary" style="margin-top:16px;">Reset All Progress</button>
     </div>
   </div>
 </div>
@@ -258,6 +292,14 @@ button.danger { background: #dc2626; }
 let QUESTIONS = [];
 let SELECTED_DOMAINS = [];
 
+// NCCAOM Domain Weights
+const DOMAIN_WEIGHTS = {
+  "Domain I: Acupuncture Point Location (15%)": 0.15,
+  "Domain II: Safety for Acupuncture Practice (15%)": 0.15,
+  "Domain III: Treatment Plan (40%)": 0.40,
+  "Domain IV: Treatment Techniques (30%)": 0.30
+};
+
 let progress = JSON.parse(localStorage.getItem('acu_mastery_progress') || '{}');
 
 function saveProgress() {
@@ -269,6 +311,7 @@ let currentIndex = 0;
 let score = 0;
 let userAnswers = [];
 let currentQuizLength = 20;
+let isExamMode = false;
 
 // Load questions
 async function loadQuestions() {
@@ -468,6 +511,7 @@ ${domain}?`)) return;
   alert(`Progress for ${domain} has been reset.`);
 }
 
+// Start normal quiz
 function startQuiz(length) {
   if (!QUESTIONS || QUESTIONS.length === 0) {
     alert('Questions are still loading...');
@@ -480,6 +524,7 @@ function startQuiz(length) {
     return;
   }
   
+  isExamMode = false;
   SELECTED_DOMAINS = selected;
   currentQuizLength = length;
   
@@ -492,6 +537,104 @@ function startQuiz(length) {
   document.getElementById('results').style.display = 'none';
   document.getElementById('quiz').style.display = 'block';
   showQuestion();
+}
+
+// Start Exam Simulation Mode with proper domain weighting
+function startExamSimulation() {
+  if (!QUESTIONS || QUESTIONS.length === 0) {
+    alert('Questions are still loading...');
+    return;
+  }
+  
+  isExamMode = true;
+  const examLength = 100;
+  currentQuizLength = examLength;
+  
+  currentQuiz = selectExamQuestions(examLength);
+  currentIndex = 0;
+  score = 0;
+  userAnswers = [];
+  
+  document.getElementById('home').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  showQuestion();
+}
+
+// Select questions for exam simulation with domain weighting + smart logic
+function selectExamQuestions(totalQuestions) {
+  const domains = Object.keys(DOMAIN_WEIGHTS);
+  let selectedQuestions = [];
+  
+  // Calculate how many questions per domain
+  const questionsPerDomain = {};
+  let remaining = totalQuestions;
+  
+  domains.forEach((domain, index) => {
+    if (index === domains.length - 1) {
+      questionsPerDomain[domain] = remaining;
+    } else {
+      const count = Math.round(totalQuestions * DOMAIN_WEIGHTS[domain]);
+      questionsPerDomain[domain] = count;
+      remaining -= count;
+    }
+  });
+  
+  // For each domain, select smart questions
+  domains.forEach(domain => {
+    const needed = questionsPerDomain[domain];
+    if (needed <= 0) return;
+    
+    const domainQuestions = QUESTIONS.filter(q => q.domain === domain);
+    
+    let missed = [], neverSeen = [], learning = [];
+    
+    domainQuestions.forEach(q => {
+      const p = progress[q.id] || { seen:0, correct_streak:0, total_correct:0, ever_wrong:false, miss_count:0, mastered:false };
+      
+      if (p.mastered) return;
+      
+      if (p.seen > 0 && p.correct_streak < 2 && p.ever_wrong) {
+        missed.push(q);
+      } else if (p.seen === 0) {
+        neverSeen.push(q);
+      } else {
+        learning.push(q);
+      }
+    });
+    
+    // Sort missed by miss_count
+    missed.sort((a, b) => {
+      const pa = progress[a.id] || { miss_count: 0 };
+      const pb = progress[b.id] || { miss_count: 0 };
+      return (pb.miss_count || 0) - (pa.miss_count || 0);
+    });
+    
+    let domainSelected = [];
+    
+    // Take missed first
+    const missedToTake = Math.min(missed.length, Math.ceil(needed * 0.3));
+    domainSelected = domainSelected.concat(missed.slice(0, missedToTake));
+    
+    // Fill with never seen
+    if (domainSelected.length < needed) {
+      neverSeen.sort(() => Math.random() - 0.5);
+      const stillNeeded = needed - domainSelected.length;
+      domainSelected = domainSelected.concat(neverSeen.slice(0, stillNeeded));
+    }
+    
+    // Fill rest with learning
+    if (domainSelected.length < needed) {
+      learning.sort(() => Math.random() - 0.5);
+      const stillNeeded = needed - domainSelected.length;
+      domainSelected = domainSelected.concat(learning.slice(0, stillNeeded));
+    }
+    
+    selectedQuestions = selectedQuestions.concat(domainSelected.slice(0, needed));
+  });
+  
+  // Shuffle final list
+  return selectedQuestions.sort(() => Math.random() - 0.5);
 }
 
 function selectSmartQuestions(count) {
@@ -513,7 +656,7 @@ function selectSmartQuestions(count) {
     }
   }
 
-  // Sort missed questions by miss_count (higher = more difficult = higher priority)
+  // Sort missed questions by miss_count
   missed.sort((a, b) => {
     const pa = progress[a.id] || { miss_count: 0 };
     const pb = progress[b.id] || { miss_count: 0 };
@@ -644,6 +787,10 @@ function showResults() {
   
   const percent = Math.round((score / currentQuiz.length) * 100);
   let html = `<p style="font-size:1.3em; text-align:center;"><strong>${score} / ${currentQuiz.length}</strong> correct (${percent}%)</p>`;
+  
+  if (isExamMode) {
+    html += `<p style="text-align:center; color:#64748b; margin-top:8px;"><em>Practice Exam Mode</em></p>`;
+  }
   
   // Domain summary
   const domainSummary = {};
