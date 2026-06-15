@@ -476,10 +476,10 @@ let SELECTED_DOMAINS = [];
 
 // NCCAOM Domain Weights
 const DOMAIN_WEIGHTS = {
-  "Domain I: Acupuncture Point Location (15%)": 0.15,
-  "Domain II: Safety for Acupuncture Practice (15%)": 0.15,
-  "Domain III: Treatment Plan (40%)": 0.40,
-  "Domain IV: Treatment Techniques (30%)": 0.30
+  "Domain I: Acupuncture Point Location (15%)": 0.20,
+  "Domain II: Safety for Acupuncture Practice (15%)": 0.10,
+  "Domain III: Treatment Plan (40%)": 0.50,
+  "Domain IV: Treatment Techniques (30%)": 0.20
 };
 
 let progress = JSON.parse(localStorage.getItem('acu_mastery_progress') || '{}');
@@ -827,6 +827,20 @@ function selectExamQuestions(totalQuestions) {
   });
   
   return selectedQuestions.sort(() => Math.random() - 0.5);
+}
+
+
+// Check if user has selected all domains
+function areAllDomainsSelected() {
+  const checkboxes = document.querySelectorAll('#domain-checkboxes input[type="checkbox"]');
+  if (checkboxes.length === 0) return false;
+  
+  let checkedCount = 0;
+  checkboxes.forEach(cb => {
+    if (cb.checked) checkedCount++;
+  });
+  
+  return checkedCount === checkboxes.length;
 }
 
 function selectSmartQuestions(count) {
