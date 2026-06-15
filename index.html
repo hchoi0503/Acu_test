@@ -154,10 +154,6 @@ button.warning { background: #f59e0b; color: white; }
   transition: width 0.3s ease;
 }
 
-.domain-filter {
-  margin: 20px 0;
-}
-
 .domain-checkbox {
   display: flex;
   align-items: center;
@@ -173,10 +169,13 @@ button.warning { background: #f59e0b; color: white; }
   height: 18px;
 }
 
-#loading {
-  text-align: center;
-  padding: 40px;
-  color: #64748b;
+.focus-button {
+  background: #7c3aed;
+  margin-top: 12px;
+}
+
+.focus-button:hover {
+  background: #6d28d9;
 }
 </style>
 </head>
@@ -197,6 +196,11 @@ button.warning { background: #f59e0b; color: white; }
     <div class="domain-filter">
       <p style="font-weight:600; margin-bottom:12px; color:#475569;">Select Domains for Quiz:</p>
       <div id="domain-checkboxes"></div>
+      
+      <!-- Focus Button -->
+      <button onclick="focusOnWeakDomains()" class="focus-button" style="width:100%; margin-top:16px;">
+        Focus on My Weak Domains
+      </button>
     </div>
     
     <div style="text-align:center; margin-top:20px;">
@@ -275,7 +279,6 @@ async function loadQuestions() {
       <div class="card">
         <h2 style="color:#dc2626;">Error Loading Questions</h2>
         <p>Could not load <strong>questions_refined_4_domains.json</strong>.</p>
-        <p>Please make sure the file is in the same folder.</p>
       </div>
     `;
   }
@@ -313,7 +316,58 @@ function getSelectedDomains() {
   checkboxes.forEach(cb => {
     if (cb.checked) selected.push(cb.dataset.domain);
   });
-  return selected.length > 0 ? selected : null; // null = all domains
+  return selected.length > 0 ? selected : null;
+}
+
+// Calculate mastery per domain
+function getDomainMastery() {
+  const domains = [...new Set(QUESTIONS.map(q => q.domain))];
+  const mastery = {};
+  
+  domains.forEach(domain => {
+    const domainQuestions = QUESTIONS.filter(q => q.domain === domain);
+    let mastered = 0;
+    
+    domainQuestions.forEach(q => {
+      const p = progress[q.id];
+      if (p && p.mastered) mastered++;
+    });
+    
+    const percent = domainQuestions.length > 0 
+      ? Math.round((mastered / domainQuestions.length) * 100) 
+      : 0;
+    
+    mastery[domain] = {
+      mastered: mastered,
+      total: domainQuestions.length,
+      percent: percent
+    };
+  });
+  
+  return mastery;
+}
+
+// Focus on weakest domains
+function focusOnWeakDomains() {
+  if (!QUESTIONS || QUESTIONS.length === 0) return;
+  
+  const mastery = getDomainMastery();
+  const sortedDomains = Object.entries(mastery)
+    .sort((a, b) => a[1].percent - b[1].percent); // lowest % first
+  
+  // Select the bottom 50% or at least 2 weakest domains
+  const weakestCount = Math.max(2, Math.ceil(sortedDomains.length / 2));
+  const weakestDomains = sortedDomains.slice(0, weakestCount).map(d => d[0]);
+  
+  // Check only the weak domains
+  const checkboxes = document.querySelectorAll('#domain-checkboxes input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    cb.checked = weakestDomains.includes(cb.dataset.domain);
+  });
+  
+  alert(`Focused on your weakest domains:
+${weakestDomains.join('
+')}`);
 }
 
 // Update home stats with domain breakdown
@@ -416,7 +470,6 @@ function selectSmartQuestions(count) {
   let missed = [], neverSeen = [], learning = [];
 
   for (let q of QUESTIONS) {
-    // Filter by selected domains
     if (!SELECTED_DOMAINS.includes(q.domain)) continue;
     
     const p = progress[q.id] || { seen:0, correct_streak:0, total_correct:0, ever_wrong:false, mastered:false };
@@ -513,7 +566,8 @@ function submitAnswer() {
     selectedText: selectedText,
     correct: q.correct,
     correctText: correctText,
-    isCorrect: isCorrect
+    isCorrect: isCorrect,
+    domain: q.domain
   });
   
   document.querySelectorAll('.option').forEach(el => {
@@ -556,12 +610,32 @@ function showResults() {
   const percent = Math.round((score / currentQuiz.length) * 100);
   let html = `<p style="font-size:1.3em; text-align:center;"><strong>${score} / ${currentQuiz.length}</strong> correct (${percent}%)</p>`;
   
+  // Domain summary
+  const domainSummary = {};
+  userAnswers.forEach(ans => {
+    if (!domainSummary[ans.domain]) {
+      domainSummary[ans.domain] = { correct: 0, total: 0 };
+    }
+    domainSummary[ans.domain].total++;
+    if (ans.isCorrect) domainSummary[ans.domain].correct++;
+  });
+  
+  html += `<h3 style="margin-top:20px;">Performance by Domain</h3>`;
+  Object.keys(domainSummary).forEach(domain => {
+    const d = domainSummary[domain];
+    const dPercent = Math.round((d.correct / d.total) * 100);
+    html += `<div style="margin-bottom:6px; font-size:0.95em;">
+      <strong>${domain}</strong>: ${d.correct}/${d.total} correct (${dPercent}%)
+    </div>`;
+  });
+  
   html += `<h3 style="margin-top:24px;">Review</h3>`;
   
   userAnswers.forEach((ans, i) => {
     const q = currentQuiz[i];
     html += `<div style="margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #e2e8f0;">
-      <strong>Q${i+1}.</strong> ${ans.isCorrect ? '✅' : '❌'} ${q.question}<br><br>
+      <strong>Q${i+1}.</strong> ${ans.isCorrect ? '✅' : '❌'} ${q.question}<br>
+      <small style="color:#64748b; display:block; margin-top:4px;">${q.domain}</small><br>
       <small style="color:#64748b;">
         Your answer: <strong style="color:#1e293b;">${ans.selectedText}</strong> (${ans.selected})<br>
         Correct answer: <strong style="color:#16a34a;">${ans.correctText}</strong> (${ans.correct})
