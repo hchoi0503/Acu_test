@@ -606,19 +606,34 @@ function focusOnWeakDomains() {
 function updateHomeStats() {
   if (!QUESTIONS || QUESTIONS.length === 0) return;
   
-  // Overall stats
-  let mastered = 0, missed = 0, neverSeen = 0, flagged = 0;
-  
+  // Proper categorization
+  let mastered = 0;
+  let missed = 0;
+  let learning = 0;      // In Progress / Learning
+  let neverSeen = 0;
+  let flagged = 0;
+
   for (let q of QUESTIONS) {
     const p = progress[q.id];
-    if (!p) { neverSeen++; continue; }
-    if (p.mastered) mastered++;
-    else if (p.seen > 0 && p.correct_streak < 2 && p.ever_wrong) missed++;
-    else if (p.seen === 0) neverSeen++;
+    
+    if (!p) {
+      neverSeen++;
+      continue;
+    }
     
     if (p.flagged) flagged++;
+    
+    if (p.mastered) {
+      mastered++;
+    } 
+    else if (p.seen > 0 && p.ever_wrong && p.correct_streak < 2) {
+      missed++;
+    } 
+    else if (p.seen > 0) {
+      learning++;
+    }
   }
-  
+
   document.getElementById('home-stats').innerHTML = `
     <div class="stat-card">
       <div class="stat-number">${QUESTIONS.length}</div>
@@ -633,12 +648,17 @@ function updateHomeStats() {
       <div style="color:#64748b; font-size:0.9em;">Missed (Active)</div>
     </div>
     <div class="stat-card">
-      <div class="stat-number" style="color:#f59e0b;">${flagged}</div>
-      <div style="color:#64748b; font-size:0.9em;">Flagged</div>
+      <div class="stat-number" style="color:#f59e0b;">${learning}</div>
+      <div style="color:#64748b; font-size:0.9em;">In Progress</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" style="color:#2563eb;">${neverSeen}</div>
+      <div style="color:#64748b; font-size:0.9em;">Never Seen</div>
     </div>
   `;
-  
-  // Domain breakdown with reset buttons
+
+
+    // Domain breakdown with reset buttons
   const domains = [...new Set(QUESTIONS.map(q => q.domain))];
   let html = '<h3 style="margin-top:24px; margin-bottom:12px;">Domain Performance</h3>';
   
