@@ -215,7 +215,31 @@ button.danger { background: #dc2626; }
 .exam-button:hover {
   background: #047857;
 }
+
+.note-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 15px;
+  resize: vertical;
+  margin-top: 8px;
+}
+
+.flag-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.flag-checkbox input {
+  width: 18px;
+  height: 18px;
+}
 </style>
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
@@ -250,7 +274,6 @@ button.danger { background: #dc2626; }
       
       <br>
       
-      <!-- Exam Simulation Button -->
       <button onclick="startExamSimulation()" class="exam-button" style="margin-top:16px; width:100%; max-width:320px;">
         Take Practice Exam (100 Questions)
       </button>
@@ -422,12 +445,12 @@ ${weakestDomains.join('
 ')}`);
 }
 
-// Update home stats with domain breakdown + reset buttons
+// Update home stats
 function updateHomeStats() {
   if (!QUESTIONS || QUESTIONS.length === 0) return;
   
   // Overall stats
-  let mastered = 0, missed = 0, neverSeen = 0;
+  let mastered = 0, missed = 0, neverSeen = 0, flagged = 0;
   
   for (let q of QUESTIONS) {
     const p = progress[q.id];
@@ -435,6 +458,8 @@ function updateHomeStats() {
     if (p.mastered) mastered++;
     else if (p.seen > 0 && p.correct_streak < 2 && p.ever_wrong) missed++;
     else if (p.seen === 0) neverSeen++;
+    
+    if (p.flagged) flagged++;
   }
   
   document.getElementById('home-stats').innerHTML = `
@@ -451,8 +476,8 @@ function updateHomeStats() {
       <div style="color:#64748b; font-size:0.9em;">Missed (Active)</div>
     </div>
     <div class="stat-card">
-      <div class="stat-number" style="color:#2563eb;">${neverSeen}</div>
-      <div style="color:#64748b; font-size:0.9em;">Never Seen</div>
+      <div class="stat-number" style="color:#f59e0b;">${flagged}</div>
+      <div style="color:#64748b; font-size:0.9em;">Flagged</div>
     </div>
   `;
   
@@ -511,7 +536,6 @@ ${domain}?`)) return;
   alert(`Progress for ${domain} has been reset.`);
 }
 
-// Start normal quiz
 function startQuiz(length) {
   if (!QUESTIONS || QUESTIONS.length === 0) {
     alert('Questions are still loading...');
@@ -539,7 +563,6 @@ function startQuiz(length) {
   showQuestion();
 }
 
-// Start Exam Simulation Mode with proper domain weighting
 function startExamSimulation() {
   if (!QUESTIONS || QUESTIONS.length === 0) {
     alert('Questions are still loading...');
@@ -561,14 +584,12 @@ function startExamSimulation() {
   showQuestion();
 }
 
-// Select questions for exam simulation with domain weighting + smart logic
 function selectExamQuestions(totalQuestions) {
   const domains = Object.keys(DOMAIN_WEIGHTS);
   let selectedQuestions = [];
-  
-  // Calculate how many questions per domain
-  const questionsPerDomain = {};
   let remaining = totalQuestions;
+  
+  const questionsPerDomain = {};
   
   domains.forEach((domain, index) => {
     if (index === domains.length - 1) {
@@ -580,7 +601,6 @@ function selectExamQuestions(totalQuestions) {
     }
   });
   
-  // For each domain, select smart questions
   domains.forEach(domain => {
     const needed = questionsPerDomain[domain];
     if (needed <= 0) return;
@@ -603,7 +623,6 @@ function selectExamQuestions(totalQuestions) {
       }
     });
     
-    // Sort missed by miss_count
     missed.sort((a, b) => {
       const pa = progress[a.id] || { miss_count: 0 };
       const pb = progress[b.id] || { miss_count: 0 };
@@ -612,18 +631,15 @@ function selectExamQuestions(totalQuestions) {
     
     let domainSelected = [];
     
-    // Take missed first
     const missedToTake = Math.min(missed.length, Math.ceil(needed * 0.3));
     domainSelected = domainSelected.concat(missed.slice(0, missedToTake));
     
-    // Fill with never seen
     if (domainSelected.length < needed) {
       neverSeen.sort(() => Math.random() - 0.5);
       const stillNeeded = needed - domainSelected.length;
       domainSelected = domainSelected.concat(neverSeen.slice(0, stillNeeded));
     }
     
-    // Fill rest with learning
     if (domainSelected.length < needed) {
       learning.sort(() => Math.random() - 0.5);
       const stillNeeded = needed - domainSelected.length;
@@ -633,7 +649,6 @@ function selectExamQuestions(totalQuestions) {
     selectedQuestions = selectedQuestions.concat(domainSelected.slice(0, needed));
   });
   
-  // Shuffle final list
   return selectedQuestions.sort(() => Math.random() - 0.5);
 }
 
@@ -656,7 +671,6 @@ function selectSmartQuestions(count) {
     }
   }
 
-  // Sort missed questions by miss_count
   missed.sort((a, b) => {
     const pa = progress[a.id] || { miss_count: 0 };
     const pb = progress[b.id] || { miss_count: 0 };
@@ -719,7 +733,7 @@ function submitAnswer() {
   if (isCorrect) score++;
   
   if (!progress[q.id]) {
-    progress[q.id] = { seen:0, correct_streak:0, total_correct:0, ever_wrong:false, miss_count:0, mastered:false };
+    progress[q.id] = { seen:0, correct_streak:0, total_correct:0, ever_wrong:false, miss_count:0, mastered:false, flagged:false, note:"" };
   }
   const p = progress[q.id];
   p.seen++;
@@ -815,17 +829,47 @@ function showResults() {
   
   userAnswers.forEach((ans, i) => {
     const q = currentQuiz[i];
-    html += `<div style="margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #e2e8f0;">
+    const p = progress[q.id] || { flagged: false, note: "" };
+    
+    html += `<div style="margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid #e2e8f0;">
       <strong>Q${i+1}.</strong> ${ans.isCorrect ? '✅' : '❌'} ${q.question}<br>
       <small style="color:#64748b; display:block; margin-top:4px;">${q.domain}</small><br>
+      
       <small style="color:#64748b;">
         Your answer: <strong style="color:#1e293b;">${ans.selectedText}</strong> (${ans.selected})<br>
         Correct answer: <strong style="color:#16a34a;">${ans.correctText}</strong> (${ans.correct})
       </small>
+      
+      <div style="margin-top:12px;">
+        <label class="flag-checkbox">
+          <input type="checkbox" ${p.flagged ? 'checked' : ''} onchange="toggleFlag('${q.id}', this.checked)">
+          Flag this question
+        </label>
+        
+        <textarea class="note-textarea" placeholder="Add your note here..." onchange="saveNote('${q.id}', this.value)">${p.note || ''}</textarea>
+      </div>
     </div>`;
   });
   
   document.getElementById('stats').innerHTML = html;
+}
+
+// Toggle flag for a question
+function toggleFlag(questionId, isFlagged) {
+  if (!progress[questionId]) {
+    progress[questionId] = { seen:0, correct_streak:0, total_correct:0, ever_wrong:false, miss_count:0, mastered:false, flagged:false, note:"" };
+  }
+  progress[questionId].flagged = isFlagged;
+  saveProgress();
+}
+
+// Save note for a question
+function saveNote(questionId, note) {
+  if (!progress[questionId]) {
+    progress[questionId] = { seen:0, correct_streak:0, total_correct:0, ever_wrong:false, miss_count:0, mastered:false, flagged:false, note:"" };
+  }
+  progress[questionId].note = note.trim();
+  saveProgress();
 }
 
 function goHome() {
@@ -848,6 +892,19 @@ async function initApp() {
 }
 
 initApp();
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(registration => {
+        console.log('ServiceWorker registered successfully');
+      })
+      .catch(error => {
+        console.log('ServiceWorker registration failed:', error);
+      });
+  });
+}
 </script>
 </body>
 </html>
