@@ -19,7 +19,7 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
   color: #1e293b;
-  max-width: 860px;
+  max-width: 900px;
   margin: 20px auto;
   padding: 16px;
   line-height: 1.6;
@@ -36,8 +36,6 @@ h1 {
   font-size: 2rem;
 }
 
-@media (max-width: 600px) { h1 { font-size: 1.6rem; } }
-
 .card {
   background: var(--card);
   border-radius: 16px;
@@ -45,8 +43,6 @@ h1 {
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   margin-bottom: 20px;
 }
-
-@media (max-width: 600px) { .card { padding: 18px; border-radius: 12px; } }
 
 button {
   background: var(--primary);
@@ -64,10 +60,6 @@ button {
 button:hover { background: #1d4ed8; }
 button.secondary { background: #64748b; }
 button.warning { background: #f59e0b; color: white; }
-
-@media (max-width: 600px) {
-  button { width: 100%; margin: 8px 0; font-size: 16px; }
-}
 
 .option {
   padding: 14px 18px;
@@ -87,16 +79,12 @@ button.warning { background: #f59e0b; color: white; }
 .option.correct { border-color: var(--success); background: #dcfce7; }
 .option.incorrect { border-color: var(--danger); background: #fee2e2; }
 
-@media (max-width: 600px) { .option { font-size: 15px; padding: 16px 18px; } }
-
 #question {
   font-size: 1.1em;
   font-weight: 600;
   margin-bottom: 20px;
   line-height: 1.5;
 }
-
-@media (max-width: 600px) { #question { font-size: 1.05em; } }
 
 #explanation {
   background: #fefce8;
@@ -107,16 +95,12 @@ button.warning { background: #f59e0b; color: white; }
   display: none;
 }
 
-@media (max-width: 600px) { #explanation { padding: 14px 16px; } }
-
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
   margin: 20px 0;
 }
-
-@media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
 
 .stat-card {
   background: #f1f5f9;
@@ -126,30 +110,73 @@ button.warning { background: #f59e0b; color: white; }
 }
 
 .stat-number {
-  font-size: 1.8em;
+  font-size: 1.6em;
   font-weight: 700;
   color: var(--primary);
 }
 
-#progress {
-  font-weight: 600;
-  color: #475569;
-  margin-bottom: 12px;
+.domain-stats {
+  margin-top: 24px;
 }
 
-.quiz-length-buttons {
+.domain-row {
   display: flex;
-  gap: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 20px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  font-size: 0.95em;
 }
 
-@media (max-width: 600px) {
-  .quiz-length-buttons {
-    flex-direction: column;
-    gap: 10px;
-  }
+.domain-name {
+  font-weight: 600;
+  flex: 1;
+}
+
+.domain-progress {
+  color: #64748b;
+  font-size: 0.9em;
+}
+
+.domain-bar {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.domain-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.domain-filter {
+  margin: 20px 0;
+}
+
+.domain-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.domain-checkbox input {
+  width: 18px;
+  height: 18px;
+}
+
+#loading {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
 }
 </style>
 </head>
@@ -157,26 +184,30 @@ button.warning { background: #f59e0b; color: white; }
 
 <div id="home">
   <h1>Acupuncture Quiz</h1>
-  <p style="text-align:center; color:#64748b; margin-bottom:24px;">1210 questions • Smart Mastery System</p>
+  <p style="text-align:center; color:#64748b; margin-bottom:16px;">1210 questions • Smart Mastery System</p>
   
   <div class="card">
+    <!-- Overall Stats -->
     <div class="stats-grid" id="home-stats"></div>
     
-    <div style="text-align:center; margin-top:24px;">
-      <p style="margin-bottom:12px; font-weight:600; color:#475569;">Choose quiz length:</p>
-      
-      <div class="quiz-length-buttons">
-        <button onclick="startQuiz(10)" id="btn10" disabled style="font-size:17px; padding:14px 36px; background:#16a34a;">
-          Start 10 Questions
-        </button>
-        <button onclick="startQuiz(20)" id="btn20" disabled style="font-size:17px; padding:14px 36px;">
-          Start 20 Questions
-        </button>
-      </div>
-      
-      <div style="margin-top:20px;">
-        <button onclick="resetAllProgress()" class="secondary">Reset All Progress</button>
-      </div>
+    <!-- Domain Breakdown -->
+    <div class="domain-stats" id="domain-stats"></div>
+    
+    <!-- Domain Filter -->
+    <div class="domain-filter">
+      <p style="font-weight:600; margin-bottom:12px; color:#475569;">Select Domains for Quiz:</p>
+      <div id="domain-checkboxes"></div>
+    </div>
+    
+    <div style="text-align:center; margin-top:20px;">
+      <button onclick="startQuiz(10)" id="btn10" disabled style="font-size:17px; padding:14px 36px; background:#16a34a;">
+        Start 10 Questions
+      </button>
+      <button onclick="startQuiz(20)" id="btn20" disabled style="font-size:17px; padding:14px 36px;">
+        Start 20 Questions
+      </button>
+      <br>
+      <button onclick="resetAllProgress()" class="secondary" style="margin-top:12px;">Reset All Progress</button>
     </div>
   </div>
 </div>
@@ -208,8 +239,9 @@ button.warning { background: #f59e0b; color: white; }
 </div>
 
 <script>
-// QUESTIONS will be loaded from questions.json
+// QUESTIONS loaded from JSON
 let QUESTIONS = [];
+let SELECTED_DOMAINS = [];
 
 let progress = JSON.parse(localStorage.getItem('acu_mastery_progress') || '{}');
 
@@ -223,48 +255,72 @@ let score = 0;
 let userAnswers = [];
 let currentQuizLength = 20;
 
-// Load questions from external JSON file
+// Load questions
 async function loadQuestions() {
   try {
-    const response = await fetch('questions.json');
-    
-    if (!response.ok) {
-      throw new Error('Failed to load questions.json');
-    }
+    const response = await fetch('questions_refined_4_domains.json');
+    if (!response.ok) throw new Error('Failed to load questions');
     
     QUESTIONS = await response.json();
     
-    // Enable buttons only after successful load
     document.getElementById('btn10').disabled = false;
     document.getElementById('btn20').disabled = false;
     
-    // Now it's safe to update stats
+    renderDomainCheckboxes();
     updateHomeStats();
     
   } catch (error) {
-    console.error('Error loading questions:', error);
-    
-    const homeContainer = document.getElementById('home');
-    homeContainer.innerHTML = `
+    console.error(error);
+    document.getElementById('home').innerHTML = `
       <div class="card">
-        <h2 style="color:#dc2626;">Failed to Load Questions</h2>
-        <p>Could not load <strong>questions.json</strong>.</p>
-        <p style="color:#64748b; font-size:0.9em;">
-          Please make sure <code>questions.json</code> exists in the same folder.<br>
-          If running locally, use VS Code Live Server or run <code>python -m http.server</code>.
-        </p>
+        <h2 style="color:#dc2626;">Error Loading Questions</h2>
+        <p>Could not load <strong>questions_refined_4_domains.json</strong>.</p>
+        <p>Please make sure the file is in the same folder.</p>
       </div>
     `;
   }
 }
 
-// Safe version of updateHomeStats with guard
-function updateHomeStats() {
-  // Safety check: Don't run if QUESTIONS is not loaded yet
-  if (!QUESTIONS || QUESTIONS.length === 0) {
-    return;
-  }
+// Render domain checkboxes
+function renderDomainCheckboxes() {
+  const container = document.getElementById('domain-checkboxes');
+  container.innerHTML = '';
   
+  const domains = [...new Set(QUESTIONS.map(q => q.domain))];
+  
+  domains.forEach(domain => {
+    const div = document.createElement('div');
+    div.className = 'domain-checkbox';
+    
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = true;
+    checkbox.dataset.domain = domain;
+    
+    const label = document.createElement('label');
+    label.textContent = domain;
+    
+    div.appendChild(checkbox);
+    div.appendChild(label);
+    container.appendChild(div);
+  });
+}
+
+// Get selected domains
+function getSelectedDomains() {
+  const checkboxes = document.querySelectorAll('#domain-checkboxes input[type="checkbox"]');
+  const selected = [];
+  checkboxes.forEach(cb => {
+    if (cb.checked) selected.push(cb.dataset.domain);
+  });
+  return selected.length > 0 ? selected : null; // null = all domains
+}
+
+// Update home stats with domain breakdown
+function updateHomeStats() {
+  if (!QUESTIONS || QUESTIONS.length === 0) return;
+  
+  // Overall stats
   let mastered = 0, missed = 0, neverSeen = 0;
   
   for (let q of QUESTIONS) {
@@ -293,16 +349,58 @@ function updateHomeStats() {
       <div style="color:#64748b; font-size:0.9em;">Never Seen</div>
     </div>
   `;
+  
+  // Domain breakdown
+  const domains = [...new Set(QUESTIONS.map(q => q.domain))];
+  let html = '<h3 style="margin-top:24px; margin-bottom:12px;">Domain Performance</h3>';
+  
+  domains.forEach(domain => {
+    const domainQuestions = QUESTIONS.filter(q => q.domain === domain);
+    let dMastered = 0, dMissed = 0, dNever = 0;
+    
+    domainQuestions.forEach(q => {
+      const p = progress[q.id];
+      if (!p) { dNever++; return; }
+      if (p.mastered) dMastered++;
+      else if (p.seen > 0 && p.correct_streak < 2 && p.ever_wrong) dMissed++;
+      else if (p.seen === 0) dNever++;
+    });
+    
+    const percent = domainQuestions.length > 0 
+      ? Math.round((dMastered / domainQuestions.length) * 100) 
+      : 0;
+    
+    html += `
+      <div class="domain-row">
+        <div>
+          <div class="domain-name">${domain}</div>
+          <div class="domain-progress">${dMastered} / ${domainQuestions.length} mastered (${percent}%)</div>
+          <div class="domain-bar">
+            <div class="domain-bar-fill" style="width: ${percent}%"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  document.getElementById('domain-stats').innerHTML = html;
 }
 
 function startQuiz(length) {
-  // Safety check
   if (!QUESTIONS || QUESTIONS.length === 0) {
-    alert('Questions are still loading. Please wait a moment and try again.');
+    alert('Questions are still loading...');
     return;
   }
   
+  const selected = getSelectedDomains();
+  if (!selected) {
+    alert('Please select at least one domain.');
+    return;
+  }
+  
+  SELECTED_DOMAINS = selected;
   currentQuizLength = length;
+  
   currentQuiz = selectSmartQuestions(length);
   currentIndex = 0;
   score = 0;
@@ -318,6 +416,9 @@ function selectSmartQuestions(count) {
   let missed = [], neverSeen = [], learning = [];
 
   for (let q of QUESTIONS) {
+    // Filter by selected domains
+    if (!SELECTED_DOMAINS.includes(q.domain)) continue;
+    
     const p = progress[q.id] || { seen:0, correct_streak:0, total_correct:0, ever_wrong:false, mastered:false };
     
     if (p.mastered) continue;
@@ -402,10 +503,8 @@ function submitAnswer() {
   }
   saveProgress();
   
-  // Save answer for review
   const selectedIndex = window.selectedLetter.charCodeAt(0) - 65;
   const selectedText = q.options[selectedIndex];
-  
   const correctIndex = q.correct.charCodeAt(0) - 65;
   const correctText = q.options[correctIndex];
   
@@ -488,7 +587,6 @@ function resetAllProgress() {
   }
 }
 
-// Initialize app
 async function initApp() {
   await loadQuestions();
 }
