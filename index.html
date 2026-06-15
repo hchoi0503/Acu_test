@@ -248,38 +248,58 @@ button.danger { background: #dc2626; }
   <p style="text-align:center; color:#64748b; margin-bottom:16px;">1210 questions • Smart Mastery System</p>
   
   <div class="card">
-    <!-- Overall Stats -->
+    
+    <!-- 1. Quick Stats -->
+    <h3 style="margin-top:0; margin-bottom:16px; color:#0f172a;">Your Progress</h3>
     <div class="stats-grid" id="home-stats"></div>
     
-    <!-- Domain Breakdown -->
+    <!-- 2. Domain Performance -->
     <div class="domain-stats" id="domain-stats"></div>
     
-    <!-- Domain Filter -->
-    <div class="domain-filter">
-      <p style="font-weight:600; margin-bottom:12px; color:#475569;">Select Domains for Quiz:</p>
-      <div id="domain-checkboxes"></div>
+    <!-- 3. Study Actions -->
+    <div style="margin-top:28px;">
+      <h3 style="margin-bottom:14px; color:#0f172a;">Quick Study</h3>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <button onclick="startQuiz(10)" id="btn10" disabled style="flex:1; min-width:140px; background:#16a34a;">
+          Start 10 Questions
+        </button>
+        <button onclick="startQuiz(20)" id="btn20" disabled style="flex:1; min-width:140px;">
+          Start 20 Questions
+        </button>
+      </div>
       
-      <button onclick="focusOnWeakDomains()" class="focus-button" style="width:100%; margin-top:16px;">
+      <h3 style="margin:20px 0 14px; color:#0f172a;">Focused Study</h3>
+      <button onclick="focusOnWeakDomains()" class="focus-button" style="width:100%;">
         Focus on My Weak Domains
+      </button>
+      
+      <h3 style="margin:20px 0 14px; color:#0f172a;">Exam Practice</h3>
+      <button onclick="startExamSimulation()" class="exam-button" style="width:100%;">
+        Take Practice Exam (100 Questions)
       </button>
     </div>
     
+    <!-- 4. Domain Filter (Collapsible) -->
+    <details style="margin-top:28px;">
+      <summary style="font-weight:600; color:#475569; cursor:pointer; padding:8px 0; user-select:none;">
+        Filter by Domain (Advanced)
+      </summary>
+      <div style="margin-top:12px;">
+        <div id="domain-checkboxes"></div>
+        
+        <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+          <button onclick="selectAllDomains()" class="secondary" style="flex:1; font-size:14px; padding:10px 16px; min-height:44px;">
+            Select All
+          </button>
+          <button onclick="selectWeakDomains()" class="secondary" style="flex:1; font-size:14px; padding:10px 16px; min-height:44px;">
+            Select Weak Domains
+          </button>
+        </div>
+      </div>
+    </details>
+    
     <div style="text-align:center; margin-top:24px;">
-      <button onclick="startQuiz(10)" id="btn10" disabled style="font-size:17px; padding:16px 36px; background:#16a34a;">
-        Start 10 Questions
-      </button>
-      <button onclick="startQuiz(20)" id="btn20" disabled style="font-size:17px; padding:16px 36px;">
-        Start 20 Questions
-      </button>
-      
-      <br>
-      
-      <button onclick="startExamSimulation()" class="exam-button" style="margin-top:16px; width:100%; max-width:320px;">
-        Take Practice Exam (100 Questions)
-      </button>
-      
-      <br>
-      <button onclick="resetAllProgress()" class="secondary" style="margin-top:16px;">Reset All Progress</button>
+      <button onclick="resetAllProgress()" class="secondary">Reset All Progress</button>
     </div>
   </div>
 </div>
@@ -903,6 +923,26 @@ if ('serviceWorker' in navigator) {
       .catch(error => {
         console.log('ServiceWorker registration failed:', error);
       });
+  });
+}
+
+// Helper functions for domain selection
+function selectAllDomains() {
+  const checkboxes = document.querySelectorAll('#domain-checkboxes input[type="checkbox"]');
+  checkboxes.forEach(cb => cb.checked = true);
+}
+
+function selectWeakDomains() {
+  if (!QUESTIONS || QUESTIONS.length === 0) return;
+  
+  const mastery = getDomainMastery();
+  const sorted = Object.entries(mastery).sort((a, b) => a[1].percent - b[1].percent);
+  const weakestCount = Math.max(2, Math.ceil(sorted.length / 2));
+  const weakest = sorted.slice(0, weakestCount).map(d => d[0]);
+  
+  const checkboxes = document.querySelectorAll('#domain-checkboxes input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    cb.checked = weakest.includes(cb.dataset.domain);
   });
 }
 </script>
