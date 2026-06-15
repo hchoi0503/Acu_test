@@ -60,6 +60,7 @@ button {
 button:hover { background: #1d4ed8; }
 button.secondary { background: #64748b; }
 button.warning { background: #f59e0b; color: white; }
+button.danger { background: #dc2626; }
 
 .option {
   padding: 14px 18px;
@@ -177,6 +178,17 @@ button.warning { background: #f59e0b; color: white; }
 .focus-button:hover {
   background: #6d28d9;
 }
+
+.reset-domain-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 10px;
+}
 </style>
 </head>
 <body>
@@ -197,7 +209,6 @@ button.warning { background: #f59e0b; color: white; }
       <p style="font-weight:600; margin-bottom:12px; color:#475569;">Select Domains for Quiz:</p>
       <div id="domain-checkboxes"></div>
       
-      <!-- Focus Button -->
       <button onclick="focusOnWeakDomains()" class="focus-button" style="width:100%; margin-top:16px;">
         Focus on My Weak Domains
       </button>
@@ -353,13 +364,11 @@ function focusOnWeakDomains() {
   
   const mastery = getDomainMastery();
   const sortedDomains = Object.entries(mastery)
-    .sort((a, b) => a[1].percent - b[1].percent); // lowest % first
+    .sort((a, b) => a[1].percent - b[1].percent);
   
-  // Select the bottom 50% or at least 2 weakest domains
   const weakestCount = Math.max(2, Math.ceil(sortedDomains.length / 2));
   const weakestDomains = sortedDomains.slice(0, weakestCount).map(d => d[0]);
   
-  // Check only the weak domains
   const checkboxes = document.querySelectorAll('#domain-checkboxes input[type="checkbox"]');
   checkboxes.forEach(cb => {
     cb.checked = weakestDomains.includes(cb.dataset.domain);
@@ -370,7 +379,7 @@ ${weakestDomains.join('
 ')}`);
 }
 
-// Update home stats with domain breakdown
+// Update home stats with domain breakdown + reset buttons
 function updateHomeStats() {
   if (!QUESTIONS || QUESTIONS.length === 0) return;
   
@@ -404,7 +413,7 @@ function updateHomeStats() {
     </div>
   `;
   
-  // Domain breakdown
+  // Domain breakdown with reset buttons
   const domains = [...new Set(QUESTIONS.map(q => q.domain))];
   let html = '<h3 style="margin-top:24px; margin-bottom:12px;">Domain Performance</h3>';
   
@@ -426,18 +435,37 @@ function updateHomeStats() {
     
     html += `
       <div class="domain-row">
-        <div>
+        <div style="flex:1">
           <div class="domain-name">${domain}</div>
           <div class="domain-progress">${dMastered} / ${domainQuestions.length} mastered (${percent}%)</div>
           <div class="domain-bar">
             <div class="domain-bar-fill" style="width: ${percent}%"></div>
           </div>
         </div>
+        <button onclick="resetDomainProgress('${domain}')" class="reset-domain-btn">Reset</button>
       </div>
     `;
   });
   
   document.getElementById('domain-stats').innerHTML = html;
+}
+
+// Reset progress for a specific domain
+function resetDomainProgress(domain) {
+  if (!confirm(`Reset all progress for:
+${domain}?`)) return;
+  
+  const domainQuestions = QUESTIONS.filter(q => q.domain === domain);
+  
+  domainQuestions.forEach(q => {
+    if (progress[q.id]) {
+      delete progress[q.id];
+    }
+  });
+  
+  saveProgress();
+  updateHomeStats();
+  alert(`Progress for ${domain} has been reset.`);
 }
 
 function startQuiz(length) {
@@ -472,7 +500,7 @@ function selectSmartQuestions(count) {
   for (let q of QUESTIONS) {
     if (!SELECTED_DOMAINS.includes(q.domain)) continue;
     
-    const p = progress[q.id] || { seen:0, correct_streak:0, total_correct:0, ever_wrong:false, mastered:false };
+    const p = progress[q.id] || { seen:0, correct_streak:0, total_correct:0, ever_wrong:false, miss_count:0, mastered:false };
     
     if (p.mastered) continue;
     
@@ -485,12 +513,18 @@ function selectSmartQuestions(count) {
     }
   }
 
+  // Sort missed questions by miss_count (higher = more difficult = higher priority)
+  missed.sort((a, b) => {
+    const pa = progress[a.id] || { miss_count: 0 };
+    const pb = progress[b.id] || { miss_count: 0 };
+    return (pb.miss_count || 0) - (pa.miss_count || 0);
+  });
+
   let selected = [];
   
   const missedMin = Math.max(1, Math.floor(count * 0.15));
   const missedMax = Math.max(2, Math.floor(count * 0.2));
   
-  missed.sort(() => Math.random() - 0.5);
   const missedToTake = Math.min(missedMax, Math.max(missedMin, missed.length));
   selected = selected.concat(missed.slice(0, missedToTake));
   
@@ -542,7 +576,7 @@ function submitAnswer() {
   if (isCorrect) score++;
   
   if (!progress[q.id]) {
-    progress[q.id] = { seen:0, correct_streak:0, total_correct:0, ever_wrong:false, mastered:false };
+    progress[q.id] = { seen:0, correct_streak:0, total_correct:0, ever_wrong:false, miss_count:0, mastered:false };
   }
   const p = progress[q.id];
   p.seen++;
@@ -553,6 +587,7 @@ function submitAnswer() {
   } else {
     p.correct_streak = 0;
     p.ever_wrong = true;
+    p.miss_count = (p.miss_count || 0) + 1;
   }
   saveProgress();
   
