@@ -238,6 +238,145 @@ button.danger { background: #dc2626; }
   width: 18px;
   height: 18px;
 }
+
+.review-actions {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.review-header {
+  font-weight: 600;
+  font-size: 0.9em;
+  color: #475569;
+  margin-bottom: 10px;
+}
+
+.flag-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 0.95em;
+  color: #334155;
+}
+
+.flag-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: #2563eb;
+}
+
+/* Phase C: Component Polish */
+.card {
+  padding: 26px;
+  border-radius: 18px;
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 20px;
+    border-radius: 16px;
+  }
+}
+
+button {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+button.secondary {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+button.secondary:hover {
+  background: #cbd5e1;
+}
+
+.domain-row {
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.domain-checkbox {
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+
+.stats-grid {
+  gap: 14px;
+}
+
+.stat-card {
+  padding: 18px 16px;
+  border-radius: 14px;
+}
+
+/* Better typography */
+body {
+  font-size: 15.5px;
+  line-height: 1.65;
+}
+
+h3 {
+  font-size: 1.05em;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Phase D: Mobile Refinements */
+@media (max-width: 600px) {
+  body {
+    font-size: 15px;
+    padding: 12px;
+    margin: 12px auto;
+  }
+
+  .card {
+    padding: 20px 18px;
+  }
+
+  button {
+    font-size: 16px;
+    padding: 15px 20px;
+    min-height: 52px;
+  }
+
+  .option {
+    font-size: 15.5px;
+    padding: 16px 18px;
+    min-height: 58px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .domain-row {
+    padding: 12px 14px;
+  }
+
+  h3 {
+    font-size: 1em;
+  }
+
+  .review-actions {
+    padding: 12px 14px;
+  }
+}
+
+/* Ensure good touch targets */
+button, .option, input[type="checkbox"] {
+  min-height: 48px;
+}
+
+.option {
+  min-height: 56px;
+}
 </style>
   <link rel="manifest" href="manifest.json">
 </head>
@@ -860,13 +999,15 @@ function showResults() {
         Correct answer: <strong style="color:#16a34a;">${ans.correctText}</strong> (${ans.correct})
       </small>
       
-      <div style="margin-top:12px;">
+      <div class="review-actions">
+        <div class="review-header">Your Review</div>
+        
         <label class="flag-checkbox">
           <input type="checkbox" ${p.flagged ? 'checked' : ''} onchange="toggleFlag('${q.id}', this.checked)">
-          Flag this question
+          <span>Flag this question</span>
         </label>
         
-        <textarea class="note-textarea" placeholder="Add your note here..." onchange="saveNote('${q.id}', this.value)">${p.note || ''}</textarea>
+        <textarea class="note-textarea" placeholder="Add your personal note or explanation here..." onchange="saveNote('${q.id}', this.value)">${p.note || ''}</textarea>
       </div>
     </div>`;
   });
