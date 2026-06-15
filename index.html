@@ -599,9 +599,7 @@ function focusOnWeakDomains() {
     cb.checked = weakestDomains.includes(cb.dataset.domain);
   });
   
-  alert(`Focused on your weakest domains:
-${weakestDomains.join('
-')}`);
+  alert(`Focused on your weakest domains:\n${weakestDomains.join('\n')}`);
 }
 
 // Update home stats
